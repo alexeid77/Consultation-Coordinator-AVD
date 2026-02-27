@@ -26,6 +26,11 @@ export function getBot() {
 }
 
 export async function startBot() {
+  if (process.env.NODE_ENV !== "production") {
+    log("Bot disabled in development mode (preview). Only runs in production.", "bot");
+    return;
+  }
+
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) {
     log("TELEGRAM_BOT_TOKEN not set, bot will not start", "bot");
