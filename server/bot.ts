@@ -452,6 +452,7 @@ async function handleAdminCallback(ctx: BotContext, user: User, data: string, te
     for (const c of clients) {
       msg += `[${c.id}] ${c.fullName} (@${c.username || "нет"}) — ${c.status}\n`;
       if (c.status === "active") {
+        buttons.push([Markup.button.callback(`Сменить роль на консультанта: ${c.fullName}`, `changerole_consultant_${c.id}`)]);
         buttons.push([Markup.button.callback(`Заблокировать ${c.fullName}`, `block_user_${c.id}`)]);
       } else if (c.status === "blocked") {
         buttons.push([Markup.button.callback(`Разблокировать ${c.fullName}`, `unblock_user_${c.id}`)]);
@@ -473,6 +474,7 @@ async function handleAdminCallback(ctx: BotContext, user: User, data: string, te
     for (const c of consultants) {
       msg += `[${c.id}] ${c.fullName} (@${c.username || "нет"}) — ${c.status}\n`;
       if (c.status === "active") {
+        buttons.push([Markup.button.callback(`Сменить роль на клиента: ${c.fullName}`, `changerole_client_${c.id}`)]);
         buttons.push([Markup.button.callback(`Заблокировать ${c.fullName}`, `block_user_${c.id}`)]);
       } else if (c.status === "blocked") {
         buttons.push([Markup.button.callback(`Разблокировать ${c.fullName}`, `unblock_user_${c.id}`)]);
@@ -494,6 +496,25 @@ async function handleAdminCallback(ctx: BotContext, user: User, data: string, te
     const userId = parseInt(data.replace("unblock_user_", ""));
     await storage.updateUser(userId, { status: "active" });
     await ctx.reply("Пользователь разблокирован.");
+    return;
+  }
+
+  if (data.startsWith("changerole_")) {
+    const parts = data.replace("changerole_", "").split("_");
+    const newRole = parts[0] as "client" | "consultant";
+    const userId = parseInt(parts[1]);
+    const target = await storage.getUser(userId);
+    if (!target) { await ctx.reply("Пользователь не найден."); return; }
+    if (target.role === newRole) { await ctx.reply("Пользователь уже имеет эту роль."); return; }
+    const oldRole = target.role === "client" ? "клиент" : "консультант";
+    const newRoleLabel = newRole === "client" ? "клиент" : "консультант";
+    await storage.updateUser(userId, { role: newRole });
+    await ctx.reply(`Роль пользователя ${target.fullName} изменена: ${oldRole} → ${newRoleLabel}.`);
+    try {
+      await bot?.telegram.sendMessage(target.telegramId,
+        `Ваша роль была изменена администратором.\nНовая роль: ${newRoleLabel}.\nИспользуйте /menu для доступа к новому функционалу.`
+      );
+    } catch (e) {}
     return;
   }
 
