@@ -40,9 +40,9 @@ cd consultbot
 
 Откройте `package.json` и внесите следующие изменения:
 
-**а) Исправьте секцию `overrides`** (строка ~104–107):
+**а) Полностью удалите секцию `overrides`** (строка ~104–108):
 
-Было:
+Удалите этот блок целиком:
 ```json
 "overrides": {
   "drizzle-kit": {
@@ -51,14 +51,7 @@ cd consultbot
 },
 ```
 
-Замените на:
-```json
-"overrides": {
-  "drizzle-kit": {
-    "@esbuild-kit/esm-loader": "tsx"
-  }
-},
-```
+То есть просто удалите эти 5 строк из `package.json`. Запятую у предыдущей секции `devDependencies` тоже подправьте, если нужно.
 
 **б) Удалите Replit-специфичные devDependencies** (строки ~80–82):
 
